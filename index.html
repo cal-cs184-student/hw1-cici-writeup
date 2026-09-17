@@ -71,6 +71,9 @@
 		<p> 
 	    For my basic implementation of raterizing, I went through every pixel in the triangle's bounding box and did the three line tests at the center of each pixel. 
 		If all 3 tests return positive value or all test return negative value (to ensure both clockwise and counterclockwise work), that pixel is filled.
+		For example, for an edge from \(A=(x_a,y_a)\) to \(B=(x_b,y_b)\), the line test is \[L(x,y)=(x_b-x_a)(y-y_a) - (y_b-y_a)(x-x_a)\]
+					
+
 		This is basically checking each sample within the bounding box of the triangle, so it should be as efficient as sampling only within the bounding box of the triangle.
 		</p>
 		
@@ -85,9 +88,18 @@
 		<h3>Extra Credit: Speeding Up Rasterization</h3>
 		<p> 
 		For an optimized version, I noticed that the line test values only changes by a constant amount when moving from one pixel to the next, 
-		so instead of recalculating the whole expression each time, I update based on the previous value with just an addition. 
-		Also, once we enter and then leaves the triangle, I can stop checking the rest of that row. This avoids some unnecessary calculations.
-		</p>
+		which means that when moving one pixel to the right, the new value can be computed incrementally as </p>
+
+		\[L(x+1,y)=L(x,y)-(y_b-y_a)\]
+
+		<p> and when moving one pixel up </p>
+
+		\[L(x,y+1)=L(x,y)+(x_b-x_a).\]
+
+		<p> Therefore, instead of recalculating the whole expression for every sample, I update each line test from its previous value 
+			using just an addition. Also, once we enter and then leave the triangle, I can stop checking the rest of that row.
+			This avoids some unnecessary calculations. </p>
+
 		<p>Here is a table comparing my basic and optimized implementations: </p>
 		
 		
@@ -222,7 +234,14 @@
 
 		<h2>Task 4: Barycentric coordinates</h2>
 		<p>
-			Barycentric coordinates express a point inside a triangle as a weighted sum of its three vertices. The three weights alpha, beta, and gamma add up to 1, 
+			Barycentric coordinates express a point inside a triangle as a weighted sum of its three vertices. 
+	        Formally, we have \[
+P = \alpha A + \beta B + \gamma C,
+
+\]
+
+	
+			Where the three weights alpha, beta, and gamma add up to 1, 
 			so each represents how stronge the point is associated with one vertex. For example, at one vertex, the corresponding weight to that vertex is 1, while 
 			the other two are 0. This is also illustratedin the image below on the left, where each vertex is assigned a different color. The top vertex is completely red, 
 			and points close to that vertex are mostly red because the weight associated with the red vertex is larger. As we move away from the red vertex 
@@ -409,12 +428,52 @@
 		<h3>Extra Credit: Anisotropic Filtering</h3>
 
 	<p>
-		For an extra filtering method, I experimented with anisotropic filtering. It looks at how stretched the texture is and takes more
-		samples along this more stretched/longer direction. In comparisons to the other methods, this should preservse more detail while making sure we have
-		less noticeable aliasing. I did this by calculating the texture-space change in both screen-space directions, using the
-		the shorter one to select the mipmap level. I then took multiple evenly spaced samples along the longer axis 
-		and averaged their colors. Trilinear sampling also reduces aliasing well, but anisotropic filtering keeps some of the stretched details clearer. 
-		As noted by the table below, the tradeoff is that it is slower since it needs to take more samples. 
+	For an extra filtering method, I experimented with anisotropic filtering. It looks at how stretched the texture is and takes more
+	samples along this more stretched/longer direction. In comparisons to the other methods, this should preserve more detail while making sure we have
+	less noticeable aliasing.
+
+	I did this by calculating the texture-space change in both screen-space directions:
+	</p>
+
+	\[
+	\mathbf{d}_x =
+	\left(\frac{\partial u}{\partial x},\frac{\partial v}{\partial x}\right),
+	\qquad
+	\mathbf{d}_y =
+	\left(\frac{\partial u}{\partial y},\frac{\partial v}{\partial y}\right).
+	\]
+
+	<p>
+	I compared their lengths,
+	</p>
+
+	\[
+	L_x = \|\mathbf{d}_x\|,
+	\qquad
+	L_y = \|\mathbf{d}_y\|,
+	\]
+
+	<p>
+	using the shorter one to select the mipmap level,
+	</p>
+
+	\[
+	L_{\min} = \min(L_x,L_y),
+	\qquad
+	\text{level} = \log_2 L_{\min}.
+	\]
+
+	<p>
+	I then took multiple evenly spaced samples along the longer axis and averaged their colors:
+	</p>
+
+	\[
+	C = \frac{1}{N}\sum_{i=1}^{N} C_i.
+	\]
+
+	<p>
+	Trilinear sampling also reduces aliasing well, but anisotropic filtering keeps some of the stretched details clearer.
+	As noted by the table below, the tradeoff is that it is slower since it needs to take more samples.
 	</p>
 
 	<table style="width: 100%; text-align: center; border-collapse: collapse; table-layout: fixed;">
