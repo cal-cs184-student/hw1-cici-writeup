@@ -268,7 +268,8 @@ P = \alpha A + \beta B + \gamma C,
 		<h2>Task 5: "Pixel sampling" for texture mapping</h2>
 		
 		<p>
-			Pixel sampling is choosing what pixel from the texture space to use for a pixel in the screen space. 
+			Pixel sampling is the process of choosing what pixel from the texture space to use for a pixel in the screen space. 
+			This is especially useful during texture magnification, when the texture is stretched over more screen pixels.
 			In my implementation, I first get the barycentric coordinates to interpolate the texture coordinates 
 			for each sample inside the triangle. I then used this to determine what color should be 
 			read from the texture space. For nearest sampling, I chose the texel whose center is closest to the calculated texture 
